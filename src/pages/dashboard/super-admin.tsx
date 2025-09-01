@@ -4,6 +4,10 @@ import { StatsCard } from "@/components/ui/stats-card";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Building2, 
   Users, 
@@ -12,7 +16,11 @@ import {
   Download,
   Plus,
   Settings,
-  BarChart3
+  BarChart3,
+  User,
+  Bell,
+  Shield,
+  FileText
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -40,15 +48,19 @@ interface SuperAdminDashboardProps {
 export default function SuperAdminDashboard({ user, onLogout }: SuperAdminDashboardProps) {
   const { toast } = useToast();
   const [branches, setBranches] = useState<Branch[]>([]);
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
+  const [showAddBranchDialog, setShowAddBranchDialog] = useState(false);
+  const [newBranchName, setNewBranchName] = useState("");
+  const [newBranchManager, setNewBranchManager] = useState("");
 
-  // Mock branches data
+  // Mock branches data with Ghana locations
   useEffect(() => {
     const mockBranches: Branch[] = [
       {
         id: "1",
-        name: "Downtown Branch",
-        location: "New York, NY",
-        manager: "Sarah Wilson",
+        name: "Sunyani Branch",
+        location: "Sunyani, Bono Region",
+        manager: "Kwame Asante",
         salespeople: 8,
         totalSales: 324,
         normalSales: 278,
@@ -57,55 +69,116 @@ export default function SuperAdminDashboard({ user, onLogout }: SuperAdminDashbo
       },
       {
         id: "2", 
-        name: "West Side Branch",
-        location: "Los Angeles, CA",
-        manager: "Mike Rodriguez",
-        salespeople: 12,
-        totalSales: 456,
-        normalSales: 389,
-        conditionalSales: 67,
+        name: "Goaso Branch",
+        location: "Goaso, Ahafo Region",
+        manager: "Akosua Boateng",
+        salespeople: 6,
+        totalSales: 256,
+        normalSales: 210,
+        conditionalSales: 46,
         status: "active"
       },
       {
         id: "3",
-        name: "Central Branch",
-        location: "Chicago, IL",
-        manager: "Emma Thompson",
-        salespeople: 6,
-        totalSales: 198,
-        normalSales: 165,
-        conditionalSales: 33,
+        name: "Techiman Branch",
+        location: "Techiman, Bono East Region",
+        manager: "Yaw Mensah",
+        salespeople: 10,
+        totalSales: 412,
+        normalSales: 350,
+        conditionalSales: 62,
         status: "active"
       },
       {
         id: "4",
-        name: "South Branch",
-        location: "Miami, FL", 
-        manager: "David Kim",
-        salespeople: 4,
-        totalSales: 89,
-        normalSales: 72,
-        conditionalSales: 17,
-        status: "inactive"
+        name: "Sefwi Branch",
+        location: "Sefwi Wiawso, Western North Region", 
+        manager: "Ama Osei",
+        salespeople: 5,
+        totalSales: 189,
+        normalSales: 155,
+        conditionalSales: 34,
+        status: "active"
       }
     ];
     setBranches(mockBranches);
   }, []);
 
   const handleExportGlobal = () => {
+    // Create a mock CSV export
+    const csvContent = generateGlobalCSV();
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `global-sales-report-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+
     toast({
-      title: "Exporting Global Report",
-      description: "Company-wide PDF report will be ready shortly...",
+      title: "Global Report Exported",
+      description: "Company-wide CSV report has been downloaded successfully.",
       variant: "default"
     });
   };
 
+  const generateGlobalCSV = () => {
+    let csv = "Branch,Manager,Salespeople,Total Sales,Normal Sales,Conditional Sales,Success Rate\n";
+    branches.forEach(branch => {
+      const successRate = Math.round((branch.normalSales / branch.totalSales) * 100);
+      csv += `${branch.name},${branch.manager},${branch.salespeople},${branch.totalSales},${branch.normalSales},${branch.conditionalSales},${successRate}%\n`;
+    });
+    return csv;
+  };
+
   const handleAddBranch = () => {
+    if (!newBranchName.trim() || !newBranchManager.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all branch details.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const newBranch: Branch = {
+      id: Date.now().toString(),
+      name: newBranchName,
+      location: getLocationForBranch(newBranchName),
+      manager: newBranchManager,
+      salespeople: 0,
+      totalSales: 0,
+      normalSales: 0,
+      conditionalSales: 0,
+      status: "active"
+    };
+
+    setBranches(prev => [...prev, newBranch]);
+    setNewBranchName("");
+    setNewBranchManager("");
+    setShowAddBranchDialog(false);
+
     toast({
-      title: "Add New Branch",
-      description: "This feature will be available soon...",
+      title: "Branch Added",
+      description: `${newBranchName} branch has been created successfully.`,
       variant: "default"
     });
+  };
+
+  const getLocationForBranch = (branchName: string) => {
+    const locations: { [key: string]: string } = {
+      "Sunyani": "Sunyani, Bono Region",
+      "Goaso": "Goaso, Ahafo Region", 
+      "Techiman": "Techiman, Bono East Region",
+      "Sefwi": "Sefwi Wiawso, Western North Region"
+    };
+    return locations[branchName] || `${branchName}, Ghana`;
+  };
+
+  const handleSettings = () => {
+    setShowSettingsDialog(true);
   };
 
   const totalStats = branches.reduce((acc, branch) => ({
@@ -133,18 +206,112 @@ export default function SuperAdminDashboard({ user, onLogout }: SuperAdminDashbo
             </p>
           </div>
           <div className="flex items-center space-x-3">
-            <Button variant="outline">
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
-            </Button>
+            <Dialog open={showSettingsDialog} onOpenChange={setShowSettingsDialog}>
+              <DialogTrigger asChild>
+                <Button variant="outline" onClick={handleSettings}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  Settings
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center space-x-2">
+                    <Settings className="h-5 w-5" />
+                    <span>System Settings</span>
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3 p-3 bg-muted/50 rounded-lg">
+                      <User className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="font-medium">User Management</p>
+                        <p className="text-sm text-muted-foreground">Manage branch managers and permissions</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3 p-3 bg-muted/50 rounded-lg">
+                      <Bell className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="font-medium">Notifications</p>
+                        <p className="text-sm text-muted-foreground">Configure system alerts and reports</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3 p-3 bg-muted/50 rounded-lg">
+                      <Shield className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="font-medium">Security</p>
+                        <p className="text-sm text-muted-foreground">Password policies and access controls</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3 p-3 bg-muted/50 rounded-lg">
+                      <FileText className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="font-medium">Export Settings</p>
+                        <p className="text-sm text-muted-foreground">Configure report formats and schedules</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+
             <Button variant="outline" onClick={handleExportGlobal}>
               <Download className="mr-2 h-4 w-4" />
               Export Global
             </Button>
-            <Button variant="gradient" onClick={handleAddBranch}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Branch
-            </Button>
+
+            <Dialog open={showAddBranchDialog} onOpenChange={setShowAddBranchDialog}>
+              <DialogTrigger asChild>
+                <Button variant="gradient">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Branch
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center space-x-2">
+                    <Building2 className="h-5 w-5" />
+                    <span>Add New Branch</span>
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="branch-name">Branch Location</Label>
+                    <Select onValueChange={setNewBranchName}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select branch location" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Sunyani">Sunyani</SelectItem>
+                        <SelectItem value="Goaso">Goaso</SelectItem>
+                        <SelectItem value="Techiman">Techiman</SelectItem>
+                        <SelectItem value="Sefwi">Sefwi</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="manager-name">Branch Manager Name</Label>
+                    <Input
+                      id="manager-name"
+                      placeholder="Enter manager's full name"
+                      value={newBranchManager}
+                      onChange={(e) => setNewBranchManager(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex justify-end space-x-2 pt-4">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowAddBranchDialog(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button variant="gradient" onClick={handleAddBranch}>
+                      Create Branch
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
 
@@ -254,14 +421,18 @@ export default function SuperAdminDashboard({ user, onLogout }: SuperAdminDashbo
             ))}
           </div>
 
-          {branches.length === 0 && (
+           {branches.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
               <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>No branches created yet</p>
-              <Button variant="gradient" className="mt-4" onClick={handleAddBranch}>
-                <Plus className="mr-2 h-4 w-4" />
-                Create Your First Branch
-              </Button>
+              <Dialog open={showAddBranchDialog} onOpenChange={setShowAddBranchDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="gradient" className="mt-4">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create Your First Branch
+                  </Button>
+                </DialogTrigger>
+              </Dialog>
             </div>
           )}
         </Card>
