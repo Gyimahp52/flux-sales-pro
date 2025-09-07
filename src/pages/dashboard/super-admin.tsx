@@ -20,7 +20,8 @@ import {
   User,
   Bell,
   Shield,
-  FileText
+  FileText,
+  Eye
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -33,7 +34,9 @@ interface Branch {
   totalSales: number;
   normalSales: number;
   conditionalSales: number;
-  status: "active" | "inactive";
+  successRate: number;
+  salesTarget: number;
+  status: "Active" | "Inactive";
 }
 
 interface SuperAdminDashboardProps {
@@ -52,6 +55,8 @@ export default function SuperAdminDashboard({ user, onLogout }: SuperAdminDashbo
   const [showAddBranchDialog, setShowAddBranchDialog] = useState(false);
   const [newBranchName, setNewBranchName] = useState("");
   const [newBranchManager, setNewBranchManager] = useState("");
+  const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
+  const [isBranchDetailsOpen, setIsBranchDetailsOpen] = useState(false);
 
   // Mock branches data with Ghana locations
   useEffect(() => {
@@ -65,7 +70,9 @@ export default function SuperAdminDashboard({ user, onLogout }: SuperAdminDashbo
         totalSales: 324,
         normalSales: 278,
         conditionalSales: 46,
-        status: "active"
+        successRate: 86,
+        salesTarget: 400,
+        status: "Active"
       },
       {
         id: "2", 
@@ -76,7 +83,9 @@ export default function SuperAdminDashboard({ user, onLogout }: SuperAdminDashbo
         totalSales: 256,
         normalSales: 210,
         conditionalSales: 46,
-        status: "active"
+        successRate: 82,
+        salesTarget: 300,
+        status: "Active"
       },
       {
         id: "3",
@@ -87,7 +96,9 @@ export default function SuperAdminDashboard({ user, onLogout }: SuperAdminDashbo
         totalSales: 412,
         normalSales: 350,
         conditionalSales: 62,
-        status: "active"
+        successRate: 85,
+        salesTarget: 450,
+        status: "Active"
       },
       {
         id: "4",
@@ -98,7 +109,9 @@ export default function SuperAdminDashboard({ user, onLogout }: SuperAdminDashbo
         totalSales: 189,
         normalSales: 155,
         conditionalSales: 34,
-        status: "active"
+        successRate: 82,
+        salesTarget: 250,
+        status: "Active"
       }
     ];
     setBranches(mockBranches);
@@ -152,7 +165,9 @@ export default function SuperAdminDashboard({ user, onLogout }: SuperAdminDashbo
       totalSales: 0,
       normalSales: 0,
       conditionalSales: 0,
-      status: "active"
+      successRate: 0,
+      salesTarget: 300,
+      status: "Active"
     };
 
     setBranches(prev => [...prev, newBranch]);
@@ -183,7 +198,7 @@ export default function SuperAdminDashboard({ user, onLogout }: SuperAdminDashbo
 
   const totalStats = branches.reduce((acc, branch) => ({
     totalBranches: branches.length,
-    activeBranches: branches.filter(b => b.status === "active").length,
+    activeBranches: branches.filter(b => b.status === "Active").length,
     totalSalespeople: acc.totalSalespeople + branch.salespeople,
     totalSales: acc.totalSales + branch.totalSales,
     normalSales: acc.normalSales + branch.normalSales,
@@ -369,7 +384,7 @@ export default function SuperAdminDashboard({ user, onLogout }: SuperAdminDashbo
                 <div className="flex items-center space-x-4">
                   <div className="flex-shrink-0">
                     <div className={`h-10 w-10 rounded-full flex items-center justify-center text-white font-semibold ${
-                      branch.status === "active" ? "bg-gradient-success" : "bg-muted"
+                      branch.status === "Active" ? "bg-gradient-success" : "bg-muted"
                     }`}>
                       <Building2 className="h-5 w-5" />
                     </div>
@@ -378,9 +393,9 @@ export default function SuperAdminDashboard({ user, onLogout }: SuperAdminDashbo
                     <div className="flex items-center space-x-2">
                       <h3 className="font-medium text-foreground">{branch.name}</h3>
                       <Badge
-                        variant={branch.status === "active" ? "default" : "secondary"}
+                        variant={branch.status === "Active" ? "default" : "secondary"}
                         className={
-                          branch.status === "active" 
+                          branch.status === "Active" 
                             ? "bg-success-light text-success border-success/20" 
                             : "bg-muted text-muted-foreground"
                         }
@@ -437,6 +452,68 @@ export default function SuperAdminDashboard({ user, onLogout }: SuperAdminDashbo
           )}
         </Card>
       </main>
+
+      {/* Branch Performance Details Dialog */}
+      <Dialog open={isBranchDetailsOpen} onOpenChange={setIsBranchDetailsOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Building2 className="h-5 w-5" />
+              <span>{selectedBranch?.name} Performance Details</span>
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedBranch && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center p-4 bg-muted/30 rounded-lg">
+                  <p className="text-2xl font-bold text-primary">{selectedBranch.salespeople}</p>
+                  <p className="text-sm text-muted-foreground">Team Size</p>
+                </div>
+                <div className="text-center p-4 bg-muted/30 rounded-lg">
+                  <p className="text-2xl font-bold text-foreground">₵{selectedBranch.totalSales.toLocaleString()}</p>
+                  <p className="text-sm text-muted-foreground">Total Sales</p>
+                </div>
+                <div className="text-center p-4 bg-muted/30 rounded-lg">
+                  <p className="text-2xl font-bold text-success">₵{selectedBranch.normalSales.toLocaleString()}</p>
+                  <p className="text-sm text-muted-foreground">Normal Sales</p>
+                </div>
+                <div className="text-center p-4 bg-muted/30 rounded-lg">
+                  <p className="text-2xl font-bold text-warning">₵{selectedBranch.conditionalSales.toLocaleString()}</p>
+                  <p className="text-sm text-muted-foreground">Conditional Sales</p>
+                </div>
+              </div>
+              
+              <div className="text-center p-6 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border">
+                <p className="text-3xl font-bold text-primary">{selectedBranch.successRate}%</p>
+                <p className="text-sm text-muted-foreground mt-1">Success Rate</p>
+                <div className="w-full bg-muted/50 rounded-full h-2 mt-3">
+                  <div 
+                    className="bg-primary h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${selectedBranch.successRate}%` }}
+                  ></div>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-semibold mb-2">Branch Manager</h4>
+                  <p className="text-muted-foreground">{selectedBranch.manager}</p>
+                </div>
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-semibold mb-2">Status</h4>
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-2 h-2 rounded-full ${
+                      selectedBranch.status === 'Active' ? 'bg-success' : 'bg-destructive'
+                    }`}></div>
+                    <span className="text-sm">{selectedBranch.status}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

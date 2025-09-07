@@ -30,9 +30,10 @@ interface Salesperson {
   totalSales: number;
   normalSales: number;
   conditionalSales: number;
-  lastActive: Date;
+  successRate: number;
+  lastActive: string;
   joinDate: Date;
-  status: 'active' | 'inactive';
+  status: 'Active' | 'Inactive' | 'On Leave';
 }
 
 interface BranchManagerDashboardProps {
@@ -51,6 +52,8 @@ export default function BranchManagerDashboard({ user, onLogout }: BranchManager
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedSalesperson, setSelectedSalesperson] = useState<Salesperson | null>(null);
+  const [isPerformanceDetailsOpen, setIsPerformanceDetailsOpen] = useState(false);
+  const [selectedPerformance, setSelectedPerformance] = useState<Salesperson | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     username: '',
@@ -67,9 +70,10 @@ export default function BranchManagerDashboard({ user, onLogout }: BranchManager
         totalSales: 45,
         normalSales: 38,
         conditionalSales: 7,
-        lastActive: new Date(Date.now() - 1000 * 60 * 15), // 15 mins ago
+        successRate: 84,
+        lastActive: "15 mins ago",
         joinDate: new Date('2024-01-15'),
-        status: 'active'
+        status: 'Active'
       },
       {
         id: "2", 
@@ -78,9 +82,10 @@ export default function BranchManagerDashboard({ user, onLogout }: BranchManager
         totalSales: 32,
         normalSales: 28,
         conditionalSales: 4,
-        lastActive: new Date(Date.now() - 1000 * 60 * 60 * 1), // 1 hour ago
+        successRate: 88,
+        lastActive: "1 hour ago",
         joinDate: new Date('2024-02-01'),
-        status: 'active'
+        status: 'Active'
       },
       {
         id: "3",
@@ -89,9 +94,10 @@ export default function BranchManagerDashboard({ user, onLogout }: BranchManager
         totalSales: 28,
         normalSales: 22,
         conditionalSales: 6,
-        lastActive: new Date(Date.now() - 1000 * 60 * 30), // 30 mins ago
+        successRate: 79,
+        lastActive: "30 mins ago",
         joinDate: new Date('2024-01-20'),
-        status: 'active'
+        status: 'Active'
       }
     ];
     setSalespeople(mockSalespeople);
@@ -106,8 +112,8 @@ export default function BranchManagerDashboard({ user, onLogout }: BranchManager
         person.totalSales.toString(),
         person.normalSales.toString(),
         person.conditionalSales.toString(),
-        `${Math.round((person.normalSales / person.totalSales) * 100)}%`,
-        person.lastActive.toLocaleDateString(),
+        `${person.successRate}%`,
+        person.lastActive,
         person.status
       ])
     ].map(row => row.join(',')).join('\n');
@@ -182,9 +188,10 @@ export default function BranchManagerDashboard({ user, onLogout }: BranchManager
         totalSales: 0,
         normalSales: 0,
         conditionalSales: 0,
-        lastActive: new Date(),
+        successRate: 0,
+        lastActive: "Just now",
         joinDate: new Date(),
-        status: 'active'
+        status: 'Active'
       };
       setSalespeople(prev => [...prev, newSalesperson]);
       setIsAddModalOpen(false);
@@ -299,7 +306,7 @@ export default function BranchManagerDashboard({ user, onLogout }: BranchManager
                   <div>
                     <h3 className="font-medium text-foreground">{person.name}</h3>
                     <p className="text-sm text-muted-foreground">
-                      Last active: {formatTime(person.lastActive)}
+                      Last active: {person.lastActive}
                     </p>
                   </div>
                   <div className="flex items-center space-x-1">
@@ -324,12 +331,19 @@ export default function BranchManagerDashboard({ user, onLogout }: BranchManager
                   </div>
                   <div className="text-center">
                     <p className="text-lg font-semibold text-primary">
-                      {person.totalSales > 0 ? Math.round((person.normalSales / person.totalSales) * 100) : 0}%
+                      {person.successRate}%
                     </p>
                     <p className="text-xs text-muted-foreground">Success Rate</p>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Button size="sm" variant="outline" onClick={() => handleViewDetails(person)}>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => {
+                        setSelectedPerformance(person);
+                        setIsPerformanceDetailsOpen(true);
+                      }}
+                    >
                       <Eye className="h-4 w-4" />
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => handleEditSalesperson(person)}>
@@ -460,7 +474,7 @@ export default function BranchManagerDashboard({ user, onLogout }: BranchManager
                       <p><span className="text-muted-foreground">Name:</span> {selectedSalesperson.name}</p>
                       <p><span className="text-muted-foreground">Username:</span> {selectedSalesperson.username}</p>
                       <p><span className="text-muted-foreground">Status:</span> 
-                        <Badge variant={selectedSalesperson.status === 'active' ? 'default' : 'secondary'} className="ml-2">
+                        <Badge variant={selectedSalesperson.status === 'Active' ? 'default' : 'secondary'} className="ml-2">
                           {selectedSalesperson.status}
                         </Badge>
                       </p>
@@ -473,7 +487,7 @@ export default function BranchManagerDashboard({ user, onLogout }: BranchManager
                     </div>
                     <div className="space-y-2 text-sm">
                       <p><span className="text-muted-foreground">Joined:</span> {selectedSalesperson.joinDate.toLocaleDateString()}</p>
-                      <p><span className="text-muted-foreground">Last Active:</span> {formatTime(selectedSalesperson.lastActive)}</p>
+                      <p><span className="text-muted-foreground">Last Active:</span> {selectedSalesperson.lastActive}</p>
                     </div>
                   </Card>
                 </div>
@@ -497,7 +511,7 @@ export default function BranchManagerDashboard({ user, onLogout }: BranchManager
                     </div>
                     <div>
                       <p className="text-2xl font-bold text-primary">
-                        {selectedSalesperson.totalSales > 0 ? Math.round((selectedSalesperson.normalSales / selectedSalesperson.totalSales) * 100) : 0}%
+                        {selectedSalesperson.successRate}%
                       </p>
                       <p className="text-xs text-muted-foreground">Success Rate</p>
                     </div>
@@ -524,10 +538,10 @@ export default function BranchManagerDashboard({ user, onLogout }: BranchManager
                           <TableCell>{person.username}</TableCell>
                           <TableCell>{person.totalSales}</TableCell>
                           <TableCell>
-                            {person.totalSales > 0 ? Math.round((person.normalSales / person.totalSales) * 100) : 0}%
+                            {person.successRate}%
                           </TableCell>
                           <TableCell>
-                            <Badge variant={person.status === 'active' ? 'default' : 'secondary'}>
+                            <Badge variant={person.status === 'Active' ? 'default' : 'secondary'}>
                               {person.status}
                             </Badge>
                           </TableCell>
@@ -536,6 +550,83 @@ export default function BranchManagerDashboard({ user, onLogout }: BranchManager
                     </TableBody>
                   </Table>
                 </Card>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Salesperson Performance Details Dialog */}
+        <Dialog open={isPerformanceDetailsOpen} onOpenChange={setIsPerformanceDetailsOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center space-x-2">
+                <Users className="h-5 w-5" />
+                <span>{selectedPerformance?.name} Performance Details</span>
+              </DialogTitle>
+            </DialogHeader>
+            
+            {selectedPerformance && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-center p-4 bg-muted/30 rounded-lg">
+                    <p className="text-2xl font-bold text-foreground">{selectedPerformance.totalSales}</p>
+                    <p className="text-sm text-muted-foreground">Total Sales</p>
+                  </div>
+                  <div className="text-center p-4 bg-muted/30 rounded-lg">
+                    <p className="text-2xl font-bold text-success">{selectedPerformance.normalSales}</p>
+                    <p className="text-sm text-muted-foreground">Normal Sales</p>
+                  </div>
+                  <div className="text-center p-4 bg-muted/30 rounded-lg">
+                    <p className="text-2xl font-bold text-warning">{selectedPerformance.conditionalSales}</p>
+                    <p className="text-sm text-muted-foreground">Conditional Sales</p>
+                  </div>
+                </div>
+                
+                <div className="text-center p-6 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border">
+                  <p className="text-3xl font-bold text-primary">{selectedPerformance.successRate}%</p>
+                  <p className="text-sm text-muted-foreground mt-1">Success Rate</p>
+                  <div className="w-full bg-muted/50 rounded-full h-2 mt-3">
+                    <div 
+                      className="bg-primary h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${selectedPerformance.successRate}%` }}
+                    ></div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 border rounded-lg">
+                    <h4 className="font-semibold mb-2">Last Active</h4>
+                    <p className="text-muted-foreground">{selectedPerformance.lastActive}</p>
+                  </div>
+                  <div className="p-4 border rounded-lg">
+                    <h4 className="font-semibold mb-2">Status</h4>
+                    <div className="flex items-center space-x-2">
+                      <div className={`w-2 h-2 rounded-full ${
+                        selectedPerformance.status === 'Active' ? 'bg-success' : 
+                        selectedPerformance.status === 'Inactive' ? 'bg-destructive' : 'bg-warning'
+                      }`}></div>
+                      <span className="text-sm">{selectedPerformance.status}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-4 bg-muted/20 rounded-lg">
+                  <h4 className="font-semibold mb-3">Performance Breakdown</h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Normal Sales Rate:</span>
+                      <span className="font-medium">{selectedPerformance.totalSales > 0 ? ((selectedPerformance.normalSales / selectedPerformance.totalSales) * 100).toFixed(1) : 0}%</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Conditional Sales Rate:</span>
+                      <span className="font-medium">{selectedPerformance.totalSales > 0 ? ((selectedPerformance.conditionalSales / selectedPerformance.totalSales) * 100).toFixed(1) : 0}%</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Monthly Target Achievement:</span>
+                      <span className="font-medium text-primary">{selectedPerformance.successRate}%</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </DialogContent>

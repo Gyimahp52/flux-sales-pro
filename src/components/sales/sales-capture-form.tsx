@@ -73,13 +73,28 @@ export function SalesCaptureForm({ onSaleCapture }: SalesCaptureFormProps) {
           <Label htmlFor="itemName" className="text-sm font-medium">
             Item Name
           </Label>
-          <Input
-            id="itemName"
+          <Select
             value={formData.itemName}
-            onChange={(e) => setFormData(prev => ({ ...prev, itemName: e.target.value }))}
-            placeholder="Enter product or service name"
-            className="transition-smooth focus:shadow-primary"
-          />
+            onValueChange={(value) => setFormData(prev => ({ ...prev, itemName: value }))}
+          >
+            <SelectTrigger className="transition-smooth focus:shadow-primary">
+              <SelectValue placeholder="Select product or service" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Mobile Phone">Mobile Phone</SelectItem>
+              <SelectItem value="Laptop">Laptop</SelectItem>
+              <SelectItem value="Tablet">Tablet</SelectItem>
+              <SelectItem value="Headphones">Headphones</SelectItem>
+              <SelectItem value="Smart Watch">Smart Watch</SelectItem>
+              <SelectItem value="Camera">Camera</SelectItem>
+              <SelectItem value="TV">TV</SelectItem>
+              <SelectItem value="Home Appliance">Home Appliance</SelectItem>
+              <SelectItem value="Gaming Console">Gaming Console</SelectItem>
+              <SelectItem value="Software License">Software License</SelectItem>
+              <SelectItem value="Accessories">Accessories</SelectItem>
+              <SelectItem value="Service Package">Service Package</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
