@@ -65,8 +65,8 @@ export default function BranchManagerDashboard({ user, onLogout }: BranchManager
     const mockSalespeople: Salesperson[] = [
       {
         id: "1",
-        name: "Alice Johnson",
-        username: "alice.j",
+        name: "Eddy",
+        username: "eddy",
         totalSales: 45,
         normalSales: 38,
         conditionalSales: 7,
@@ -77,8 +77,8 @@ export default function BranchManagerDashboard({ user, onLogout }: BranchManager
       },
       {
         id: "2", 
-        name: "Bob Chen",
-        username: "bob.chen",
+        name: "Yaw",
+        username: "yaw",
         totalSales: 32,
         normalSales: 28,
         conditionalSales: 4,
@@ -87,18 +87,7 @@ export default function BranchManagerDashboard({ user, onLogout }: BranchManager
         joinDate: new Date('2024-02-01'),
         status: 'Active'
       },
-      {
-        id: "3",
-        name: "Carol Davis",
-        username: "carol.d",
-        totalSales: 28,
-        normalSales: 22,
-        conditionalSales: 6,
-        successRate: 79,
-        lastActive: "30 mins ago",
-        joinDate: new Date('2024-01-20'),
-        status: 'Active'
-      }
+ 
     ];
     setSalespeople(mockSalespeople);
   }, []);

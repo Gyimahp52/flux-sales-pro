@@ -42,21 +42,21 @@ export default function SalespersonDashboard({ user, onLogout }: SalespersonDash
     const mockSales: Sale[] = [
       {
         id: "1",
-        itemName: "Wireless Headphones",
+        itemName: "pomo 1.1",
         quantity: 2,
         type: "Normal",
         timestamp: new Date(Date.now() - 1000 * 60 * 30) // 30 mins ago
       },
       {
         id: "2", 
-        itemName: "Smartphone Case",
+        itemName: "kivo gari",
         quantity: 1,
         type: "Conditional",
         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2) // 2 hours ago
       },
       {
         id: "3",
-        itemName: "USB Cable",
+        itemName: "peacock",
         quantity: 5,
         type: "Normal",
         timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4) // 4 hours ago
