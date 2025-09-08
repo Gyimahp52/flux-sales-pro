@@ -4,7 +4,7 @@ const Index = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Sales Pro</h1>
+        <h1 className="text-4xl font-bold mb-4">Welcome to MACL Sales</h1>
         <p className="text-xl text-muted-foreground">Your comprehensive sales management solution</p>
       </div>
     </div>
