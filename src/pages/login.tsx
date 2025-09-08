@@ -46,12 +46,14 @@ export default function Login({ onLogin }: LoginProps) {
         {/* Header */}
         <div className="text-center">
           <div className="flex justify-center mb-6">
-            <div className="h-16 w-16 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-primary">
-              <span className="text-white font-bold text-2xl">SP</span>
-            </div>
+            <img 
+              src="/lovable-uploads/098b217e-5db1-435e-8480-2c548188482a.png" 
+              alt="MACL - Michael Adjei Company Limited" 
+              className="h-20 w-auto"
+            />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-            Sales Pro
+            MACL Sales
           </h1>
           <p className="text-muted-foreground mt-2">
             Sign in to your account to continue
