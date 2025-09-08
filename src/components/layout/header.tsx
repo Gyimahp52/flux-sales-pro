@@ -23,13 +23,12 @@ export function Header({ user, onLogout }: HeaderProps) {
     <header className="bg-card border-b border-border px-4 py-3 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <div className="h-8 w-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">SP</span>
-            </div>
-            <h1 className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              Sales Pro
-            </h1>
+          <div className="flex items-center">
+            <img 
+              src="/lovable-uploads/098b217e-5db1-435e-8480-2c548188482a.png" 
+              alt="MACL - Michael Adjei Company Limited" 
+              className="h-10 w-auto"
+            />
           </div>
         </div>
 
