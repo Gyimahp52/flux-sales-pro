@@ -81,18 +81,13 @@ export function SalesCaptureForm({ onSaleCapture }: SalesCaptureFormProps) {
               <SelectValue placeholder="Select product or service" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Mobile Phone">Kivo gari</SelectItem>
-              <SelectItem value="Laptop">kivo pepper</SelectItem>
-              <SelectItem value="Tablet">peacock 5.5kg</SelectItem>
-              <SelectItem value="Headphones">pomo 1.1</SelectItem>
-              <SelectItem value="Smart Watch">pomo 2.0</SelectItem>
-              <SelectItem value="Camera">rice</SelectItem>
-              <SelectItem value="TV">TV</SelectItem>
-              <SelectItem value="Home Appliance">Home Appliance</SelectItem>
-              <SelectItem value="Gaming Console">Gaming Console</SelectItem>
-              <SelectItem value="Software License">Software License</SelectItem>
-              <SelectItem value="Accessories">Accessories</SelectItem>
-              <SelectItem value="Service Package">Service Package</SelectItem>
+              <SelectItem value="Kivo gari">Kivo gari</SelectItem>
+              <SelectItem value="kivo pepper">kivo pepper</SelectItem>
+              <SelectItem value="peacock 5.5kg">peacock 5.5kg</SelectItem>
+              <SelectItem value="pomo 1.1">pomo 1.1</SelectItem>
+              <SelectItem value="pomo 2.0">pomo 2.0</SelectItem>
+              <SelectItem value="rice">rice</SelectItem>
+              
             </SelectContent>
           </Select>
         </div>
