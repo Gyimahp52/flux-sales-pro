@@ -81,12 +81,12 @@ export function SalesCaptureForm({ onSaleCapture }: SalesCaptureFormProps) {
               <SelectValue placeholder="Select product or service" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Mobile Phone">Mobile Phone</SelectItem>
-              <SelectItem value="Laptop">Laptop</SelectItem>
-              <SelectItem value="Tablet">Tablet</SelectItem>
-              <SelectItem value="Headphones">Headphones</SelectItem>
-              <SelectItem value="Smart Watch">Smart Watch</SelectItem>
-              <SelectItem value="Camera">Camera</SelectItem>
+              <SelectItem value="Mobile Phone">Kivo gari</SelectItem>
+              <SelectItem value="Laptop">kivo pepper</SelectItem>
+              <SelectItem value="Tablet">peacock 5.5kg</SelectItem>
+              <SelectItem value="Headphones">pomo 1.1</SelectItem>
+              <SelectItem value="Smart Watch">pomo 2.0</SelectItem>
+              <SelectItem value="Camera">rice</SelectItem>
               <SelectItem value="TV">TV</SelectItem>
               <SelectItem value="Home Appliance">Home Appliance</SelectItem>
               <SelectItem value="Gaming Console">Gaming Console</SelectItem>
