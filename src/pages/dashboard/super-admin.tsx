@@ -70,84 +70,12 @@ export default function SuperAdminDashboard({ user, onLogout }: SuperAdminDashbo
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSecurity, setShowSecurity] = useState(false);
   const [showExportSettings, setShowExportSettings] = useState(false);
+  const [expandedSalesType, setExpandedSalesType] = useState<'normal' | 'conditional' | null>(null);
 
-  // Mock branches data with Ghana locations and activities
+  // Initialize with empty data - to be populated by actual backend
   useEffect(() => {
-    const mockBranches: Branch[] = [
-      {
-        id: "1",
-        name: "Sunyani Branch",
-        location: "Sunyani, Bono Region",
-        manager: "Joe",
-        salespeople: 8,
-        totalSales: 324,
-        normalSales: 278,
-        conditionalSales: 46,
-        successRate: 86,
-        salesTarget: 400,
-        status: "Active",
-        activities: [
-          { id: "1", salesperson: "Alice Johnson", item: "Kivo gari", quantity: 15, type: "Normal", date: "2024-01-08", value: 2250 },
-          { id: "2", salesperson: "Bob Smith", item: "rice", quantity: 8, type: "Conditional", date: "2024-01-08", value: 1200 },
-          { id: "3", salesperson: "Carol Brown", item: "pomo 2.0", quantity: 12, type: "Normal", date: "2024-01-07", value: 1800 },
-          { id: "4", salesperson: "David Wilson", item: "peacock 5.5kg", quantity: 6, type: "Conditional", date: "2024-01-07", value: 900 }
-        ]
-      },
-      {
-        id: "2", 
-        name: "Goaso Branch",
-        location: "Goaso, Ahafo Region",
-        manager: "Ken",
-        salespeople: 6,
-        totalSales: 256,
-        normalSales: 210,
-        conditionalSales: 46,
-        successRate: 82,
-        salesTarget: 300,
-        status: "Active",
-        activities: [
-          { id: "5", salesperson: "Eve Davis", item: "kivo pepper", quantity: 10, type: "Normal", date: "2024-01-08", value: 1500 },
-          { id: "6", salesperson: "Frank Miller", item: "pomo 1.1", quantity: 5, type: "Conditional", date: "2024-01-08", value: 750 },
-          { id: "7", salesperson: "Grace Lee", item: "Kivo gari", quantity: 20, type: "Normal", date: "2024-01-07", value: 3000 }
-        ]
-      },
-      {
-        id: "3",
-        name: "Techiman Branch",
-        location: "Techiman, Bono East Region",
-        manager: "Yaw ",
-        salespeople: 10,
-        totalSales: 412,
-        normalSales: 350,
-        conditionalSales: 62,
-        successRate: 85,
-        salesTarget: 450,
-        status: "Active",
-        activities: [
-          { id: "8", salesperson: "Henry Brown", item: "peacock 5.5kg", quantity: 25, type: "Normal", date: "2024-01-08", value: 3750 },
-          { id: "9", salesperson: "Ivy Clark", item: "rice", quantity: 12, type: "Conditional", date: "2024-01-08", value: 1800 },
-          { id: "10", salesperson: "Jack Adams", item: "pomo 2.0", quantity: 18, type: "Normal", date: "2024-01-07", value: 2700 }
-        ]
-      },
-      {
-        id: "4",
-        name: "Sefwi Branch",
-        location: "Sefwi Wiawso, Western North Region", 
-        manager: "Danny",
-        salespeople: 5,
-        totalSales: 189,
-        normalSales: 155,
-        conditionalSales: 34,
-        successRate: 82,
-        salesTarget: 250,
-        status: "Active",
-        activities: [
-          { id: "11", salesperson: "Karen White", item: "kivo pepper", quantity: 8, type: "Normal", date: "2024-01-08", value: 1200 },
-          { id: "12", salesperson: "Leo Green", item: "pomo 1.1", quantity: 4, type: "Conditional", date: "2024-01-08", value: 600 }
-        ]
-      }
-    ];
-    setBranches(mockBranches);
+    const initialBranches: Branch[] = [];
+    setBranches(initialBranches);
   }, []);
 
   const handleExportGlobal = () => {
@@ -172,9 +100,15 @@ export default function SuperAdminDashboard({ user, onLogout }: SuperAdminDashbo
 
   const generateGlobalCSV = () => {
     let csv = "Branch,Manager,Salespeople,Total Sales,Normal Sales,Conditional Sales,Success Rate,Item Details\n";
+    
+    if (branches.length === 0) {
+      csv += "No branches available,,,0,0,0,0%,No data available\n";
+      return csv;
+    }
+    
     branches.forEach(branch => {
-      const successRate = Math.round((branch.normalSales / branch.totalSales) * 100);
-      const itemDetails = branch.activities ? 
+      const successRate = branch.totalSales > 0 ? Math.round((branch.normalSales / branch.totalSales) * 100) : 0;
+      const itemDetails = branch.activities && branch.activities.length > 0 ? 
         branch.activities.map(activity => `${activity.item}(${activity.quantity}x${activity.type})`).join(';') : 
         'No items recorded';
       csv += `${branch.name},${branch.manager},${branch.salespeople},${branch.totalSales},${branch.normalSales},${branch.conditionalSales},${successRate}%,"${itemDetails}"\n`;
@@ -549,15 +483,57 @@ export default function SuperAdminDashboard({ user, onLogout }: SuperAdminDashbo
                   <p className="text-2xl font-bold text-foreground">{selectedBranch.totalSales}</p>
                   <p className="text-sm text-muted-foreground">Total Sales</p>
                 </div>
-                <div className="text-center p-4 bg-muted/30 rounded-lg">
+                <button 
+                  className="text-center p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer border border-transparent hover:border-success/30"
+                  onClick={() => setExpandedSalesType(expandedSalesType === 'normal' ? null : 'normal')}
+                >
                   <p className="text-2xl font-bold text-success">{selectedBranch.normalSales}</p>
-                  <p className="text-sm text-muted-foreground">Normal Sales</p>
-                </div>
-                <div className="text-center p-4 bg-muted/30 rounded-lg">
+                  <p className="text-sm text-muted-foreground">Normal Sales {expandedSalesType === 'normal' ? '▲' : '▼'}</p>
+                </button>
+                <button 
+                  className="text-center p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer border border-transparent hover:border-warning/30"
+                  onClick={() => setExpandedSalesType(expandedSalesType === 'conditional' ? null : 'conditional')}
+                >
                   <p className="text-2xl font-bold text-warning">{selectedBranch.conditionalSales}</p>
-                  <p className="text-sm text-muted-foreground">Conditional Sales</p>
-                </div>
+                  <p className="text-sm text-muted-foreground">Conditional Sales {expandedSalesType === 'conditional' ? '▲' : '▼'}</p>
+                </button>
               </div>
+
+              {/* Expanded Sales Details */}
+              {expandedSalesType && (
+                <div className="p-4 border rounded-lg bg-background">
+                  <h4 className="font-semibold mb-3 flex items-center space-x-2">
+                    <div className={`w-3 h-3 rounded-full ${
+                      expandedSalesType === 'normal' ? 'bg-success' : 'bg-warning'
+                    }`}></div>
+                    <span>{expandedSalesType === 'normal' ? 'Normal Sales' : 'Conditional Sales'} - Stock Items</span>
+                  </h4>
+                  <div className="space-y-2">
+                    {selectedBranch.activities?.filter(activity => 
+                      activity.type.toLowerCase() === expandedSalesType
+                    ).map((activity) => (
+                      <div key={activity.id} className="flex items-center justify-between p-3 bg-muted/20 rounded border">
+                        <div className="flex items-center space-x-3">
+                          <div>
+                            <p className="font-medium text-foreground">{activity.item}</p>
+                            <p className="text-sm text-muted-foreground">
+                              Sold by: {activity.salesperson} • Qty: {activity.quantity}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-foreground">₵{activity.value.toLocaleString()}</p>
+                          <p className="text-xs text-muted-foreground">{activity.date}</p>
+                        </div>
+                      </div>
+                    )) || (
+                      <p className="text-muted-foreground text-center py-4">
+                        No {expandedSalesType} sales recorded
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
               
               <div className="text-center p-6 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border">
                 <p className="text-3xl font-bold text-primary">{selectedBranch.successRate}%</p>
