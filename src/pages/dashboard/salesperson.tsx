@@ -37,32 +37,10 @@ export default function SalespersonDashboard({ user, onLogout }: SalespersonDash
   const [sales, setSales] = useState<Sale[]>([]);
   const [filter, setFilter] = useState<"All" | "Normal" | "Conditional">("All");
 
-  // Mock some initial sales data
+  // Initialize with empty sales data
   useEffect(() => {
-    const mockSales: Sale[] = [
-      {
-        id: "1",
-        itemName: "pomo 1.1",
-        quantity: 2,
-        type: "Normal",
-        timestamp: new Date(Date.now() - 1000 * 60 * 30) // 30 mins ago
-      },
-      {
-        id: "2", 
-        itemName: "kivo gari",
-        quantity: 1,
-        type: "Conditional",
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2) // 2 hours ago
-      },
-      {
-        id: "3",
-        itemName: "peacock",
-        quantity: 5,
-        type: "Normal",
-        timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4) // 4 hours ago
-      }
-    ];
-    setSales(mockSales);
+    const initialSales: Sale[] = [];
+    setSales(initialSales);
   }, []);
 
   const handleSaleCapture = (saleData: any) => {
@@ -128,8 +106,6 @@ export default function SalespersonDashboard({ user, onLogout }: SalespersonDash
             title="Total Sales"
             value={stats.totalSales}
             icon={Package}
-            change="+12% from yesterday"
-            changeType="positive"
           />
           <StatsCard
             title="Normal Sales"
@@ -147,8 +123,6 @@ export default function SalespersonDashboard({ user, onLogout }: SalespersonDash
             title="Today's Sales"
             value={stats.todaysSales}
             icon={TrendingUp}
-            change="+5 from yesterday"
-            changeType="positive"
           />
         </div>
 

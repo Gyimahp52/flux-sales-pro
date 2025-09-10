@@ -19,7 +19,8 @@ import {
   Edit,
   Trash2,
   Calendar,
-  Target
+  Target,
+  Package
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -54,58 +55,53 @@ export default function BranchManagerDashboard({ user, onLogout }: BranchManager
   const [selectedSalesperson, setSelectedSalesperson] = useState<Salesperson | null>(null);
   const [isPerformanceDetailsOpen, setIsPerformanceDetailsOpen] = useState(false);
   const [selectedPerformance, setSelectedPerformance] = useState<Salesperson | null>(null);
+  const [isSalesDetailsOpen, setIsSalesDetailsOpen] = useState(false);
+  const [salesDetailsType, setSalesDetailsType] = useState<'normal' | 'conditional'>('normal');
   const [formData, setFormData] = useState({
     name: '',
     username: '',
     password: ''
   });
 
-  // Mock salespeople data
+  // Initialize with empty salespeople data
   useEffect(() => {
-    const mockSalespeople: Salesperson[] = [
-      {
-        id: "1",
-        name: "Eddy",
-        username: "eddy",
-        totalSales: 45,
-        normalSales: 38,
-        conditionalSales: 7,
-        successRate: 84,
-        lastActive: "15 mins ago",
-        joinDate: new Date('2024-01-15'),
-        status: 'Active'
-      },
-      {
-        id: "2", 
-        name: "Yaw",
-        username: "yaw",
-        totalSales: 32,
-        normalSales: 28,
-        conditionalSales: 4,
-        successRate: 88,
-        lastActive: "1 hour ago",
-        joinDate: new Date('2024-02-01'),
-        status: 'Active'
-      },
- 
-    ];
-    setSalespeople(mockSalespeople);
+    const initialSalespeople: Salesperson[] = [];
+    setSalespeople(initialSalespeople);
   }, []);
 
+  // Mock sales activities for detailed view
+  const getSalesActivities = (salespersonId: string, type: 'normal' | 'conditional') => {
+    const activities = {
+      normal: [
+        { id: '1', itemName: 'Pomo 1.1', quantity: 3, timestamp: new Date(Date.now() - 1000 * 60 * 30), customer: 'John Doe' },
+        { id: '2', itemName: 'Kivo Gari', quantity: 2, timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), customer: 'Jane Smith' },
+        { id: '3', itemName: 'Peacock', quantity: 1, timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4), customer: 'Bob Johnson' },
+        { id: '4', itemName: 'Titus Fish', quantity: 4, timestamp: new Date(Date.now() - 1000 * 60 * 60 * 6), customer: 'Alice Brown' },
+      ],
+      conditional: [
+        { id: '5', itemName: 'Mackerel', quantity: 2, timestamp: new Date(Date.now() - 1000 * 60 * 45), customer: 'Mike Wilson', condition: 'Payment pending' },
+        { id: '6', itemName: 'Salmon', quantity: 1, timestamp: new Date(Date.now() - 1000 * 60 * 60 * 3), customer: 'Sarah Davis', condition: 'Delivery tomorrow' },
+        { id: '7', itemName: 'Tuna', quantity: 3, timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5), customer: 'Tom Anderson', condition: 'Quality check needed' },
+      ]
+    };
+    return activities[type] || [];
+  };
+
   const handleExportBranch = () => {
-    const csvContent = [
-      ['Name', 'Username', 'Total Sales', 'Normal Sales', 'Conditional Sales', 'Success Rate', 'Last Active', 'Status'],
-      ...salespeople.map(person => [
-        person.name,
-        person.username,
-        person.totalSales.toString(),
-        person.normalSales.toString(),
-        person.conditionalSales.toString(),
-        `${person.successRate}%`,
-        person.lastActive,
-        person.status
-      ])
-    ].map(row => row.join(',')).join('\n');
+    // Create detailed export including stock items
+    let csvContent = 'Name,Username,Total Sales,Normal Sales,Conditional Sales,Success Rate,Last Active,Status,Stock Items Details\n';
+    
+    salespeople.forEach(person => {
+      const normalActivities = getSalesActivities(person.id, 'normal');
+      const conditionalActivities = getSalesActivities(person.id, 'conditional');
+      
+      const stockItemsDetails = [
+        ...normalActivities.map(activity => `${activity.itemName}(${activity.quantity})`),
+        ...conditionalActivities.map(activity => `${activity.itemName}(${activity.quantity}-${(activity as any).condition || 'Pending'})`)
+      ].join('; ');
+      
+      csvContent += `${person.name},${person.username},${person.totalSales},${person.normalSales},${person.conditionalSales},${person.successRate}%,${person.lastActive},${person.status},"${stockItemsDetails}"\n`;
+    });
 
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -117,7 +113,7 @@ export default function BranchManagerDashboard({ user, onLogout }: BranchManager
 
     toast({
       title: "Report Exported",
-      description: "Branch report has been downloaded successfully.",
+      description: "Branch report with stock items has been downloaded successfully.",
       variant: "default"
     });
   };
@@ -239,32 +235,28 @@ export default function BranchManagerDashboard({ user, onLogout }: BranchManager
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatsCard
-            title="Team Members"
-            value={salespeople.length}
-            icon={Users}
-            change="+2 this month"
-            changeType="positive"
-          />
-          <StatsCard
-            title="Total Branch Sales"
-            value={totalStats.totalSales}
-            icon={TrendingUp}
-            change="+18% from last week"
-            changeType="positive"
-          />
-          <StatsCard
-            title="Normal Sales"
-            value={totalStats.normalSales}
-            icon={Building2}
-            className="border-l-4 border-l-success"
-          />
-          <StatsCard
-            title="Conditional Sales"
-            value={totalStats.conditionalSales}
-            icon={BarChart3}
-            className="border-l-4 border-l-warning"
-          />
+            <StatsCard
+              title="Team Members"
+              value={salespeople.length}
+              icon={Users}
+            />
+            <StatsCard
+              title="Total Branch Sales"
+              value={totalStats.totalSales}
+              icon={TrendingUp}
+            />
+            <StatsCard
+              title="Normal Sales"
+              value={totalStats.normalSales}
+              icon={Building2}
+              className="border-l-4 border-l-success"
+            />
+            <StatsCard
+              title="Conditional Sales"
+              value={totalStats.conditionalSales}
+              icon={BarChart3}
+              className="border-l-4 border-l-warning"
+            />
         </div>
 
         {/* Team Performance */}
@@ -310,11 +302,21 @@ export default function BranchManagerDashboard({ user, onLogout }: BranchManager
                     <p className="text-lg font-semibold text-foreground">{person.totalSales}</p>
                     <p className="text-xs text-muted-foreground">Total Sales</p>
                   </div>
-                  <div className="text-center">
+                  <div className="text-center cursor-pointer hover:bg-muted/50 p-2 rounded-lg transition-all"
+                       onClick={() => {
+                         setSelectedPerformance(person);
+                         setSalesDetailsType('normal');
+                         setIsSalesDetailsOpen(true);
+                       }}>
                     <p className="text-lg font-semibold text-success">{person.normalSales}</p>
                     <p className="text-xs text-muted-foreground">Normal</p>
                   </div>
-                  <div className="text-center">
+                  <div className="text-center cursor-pointer hover:bg-muted/50 p-2 rounded-lg transition-all"
+                       onClick={() => {
+                         setSelectedPerformance(person);
+                         setSalesDetailsType('conditional');
+                         setIsSalesDetailsOpen(true);
+                       }}>
                     <p className="text-lg font-semibold text-warning">{person.conditionalSales}</p>
                     <p className="text-xs text-muted-foreground">Conditional</p>
                   </div>
@@ -561,13 +563,21 @@ export default function BranchManagerDashboard({ user, onLogout }: BranchManager
                     <p className="text-2xl font-bold text-foreground">{selectedPerformance.totalSales}</p>
                     <p className="text-sm text-muted-foreground">Total Sales</p>
                   </div>
-                  <div className="text-center p-4 bg-muted/30 rounded-lg">
+                  <div className="text-center p-4 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-all"
+                       onClick={() => {
+                         setSalesDetailsType('normal');
+                         setIsSalesDetailsOpen(true);
+                       }}>
                     <p className="text-2xl font-bold text-success">{selectedPerformance.normalSales}</p>
-                    <p className="text-sm text-muted-foreground">Normal Sales</p>
+                    <p className="text-sm text-muted-foreground">Normal Sales (Click to view items)</p>
                   </div>
-                  <div className="text-center p-4 bg-muted/30 rounded-lg">
+                  <div className="text-center p-4 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50 transition-all"
+                       onClick={() => {
+                         setSalesDetailsType('conditional');
+                         setIsSalesDetailsOpen(true);
+                       }}>
                     <p className="text-2xl font-bold text-warning">{selectedPerformance.conditionalSales}</p>
-                    <p className="text-sm text-muted-foreground">Conditional Sales</p>
+                    <p className="text-sm text-muted-foreground">Conditional Sales (Click to view items)</p>
                   </div>
                 </div>
                 
@@ -616,6 +626,63 @@ export default function BranchManagerDashboard({ user, onLogout }: BranchManager
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Sales Details Dialog */}
+        <Dialog open={isSalesDetailsOpen} onOpenChange={setIsSalesDetailsOpen}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center space-x-2">
+                <Package className="h-5 w-5" />
+                <span>{selectedPerformance?.name} - {salesDetailsType === 'normal' ? 'Normal' : 'Conditional'} Sales Stock Items</span>
+              </DialogTitle>
+            </DialogHeader>
+            
+            {selectedPerformance && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 gap-3">
+                  {getSalesActivities(selectedPerformance.id, salesDetailsType).map((activity) => (
+                    <div
+                      key={activity.id}
+                      className="flex items-center justify-between p-4 bg-muted/30 rounded-lg border"
+                    >
+                      <div className="flex items-center space-x-4">
+                        <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center">
+                          <Package className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-foreground">{activity.itemName}</h4>
+                          <p className="text-sm text-muted-foreground">Customer: {activity.customer}</p>
+                          {salesDetailsType === 'conditional' && (activity as any).condition && (
+                            <p className="text-xs text-warning">Condition: {(activity as any).condition}</p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="text-right space-y-1">
+                        <div className="text-lg font-semibold text-foreground">
+                          Qty: {activity.quantity}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {formatTime(activity.timestamp)}
+                        </div>
+                        <Badge variant={salesDetailsType === 'normal' ? 'default' : 'secondary'} className="text-xs">
+                          {salesDetailsType === 'normal' ? 'Normal Sale' : 'Conditional Sale'}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {getSalesActivities(selectedPerformance.id, salesDetailsType).length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No {salesDetailsType} sales found for this salesperson</p>
+                  </div>
+                )}
               </div>
             )}
           </DialogContent>
