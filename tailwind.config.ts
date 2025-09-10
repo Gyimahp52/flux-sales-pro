@@ -63,12 +63,14 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				sales: {
-					blue: 'hsl(var(--sales-blue))',
-					green: 'hsl(var(--sales-green))',
-					purple: 'hsl(var(--sales-purple))',
-					orange: 'hsl(var(--sales-orange))'
-				},
+            sales: {
+              blue: 'hsl(var(--sales-blue))',
+              green: 'hsl(var(--sales-green))', 
+              purple: 'hsl(var(--sales-purple))',
+              orange: 'hsl(var(--sales-orange))',
+              indigo: 'hsl(var(--sales-indigo))',
+              teal: 'hsl(var(--sales-teal))'
+            },
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -85,21 +87,30 @@ export default {
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
 			},
-			backgroundImage: {
-				'gradient-primary': 'var(--gradient-primary)',
-				'gradient-success': 'var(--gradient-success)',
-				'gradient-card': 'var(--gradient-card)'
-			},
-			boxShadow: {
-				'sm': 'var(--shadow-sm)',
-				'md': 'var(--shadow-md)',
-				'lg': 'var(--shadow-lg)',
-				'primary': 'var(--shadow-primary)'
-			},
-			transitionTimingFunction: {
-				'smooth': 'var(--transition-smooth)',
-				'bounce': 'var(--transition-bounce)'
-			},
+            backgroundImage: {
+              'gradient-primary': 'var(--gradient-primary)',
+              'gradient-success': 'var(--gradient-success)',
+              'gradient-card': 'var(--gradient-card)',
+              'gradient-hero': 'var(--gradient-hero)',
+              'gradient-glass': 'var(--gradient-glass)',
+              'gradient-premium': 'var(--gradient-premium)'
+            },
+            boxShadow: {
+              'sm': 'var(--shadow-sm)',
+              'md': 'var(--shadow-md)',
+              'lg': 'var(--shadow-lg)',
+              'xl': 'var(--shadow-xl)',
+              'primary': 'var(--shadow-primary)',
+              'success': 'var(--shadow-success)',
+              'glow': 'var(--shadow-glow)',
+              'glass': 'var(--shadow-glass)'
+            },
+            transitionTimingFunction: {
+              'smooth': 'var(--transition-smooth)',
+              'bounce': 'var(--transition-bounce)',
+              'spring': 'var(--transition-spring)',
+              'elegant': 'var(--transition-elegant)'
+            },
 			keyframes: {
 				'accordion-down': {
 					from: {

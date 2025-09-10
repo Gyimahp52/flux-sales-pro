@@ -201,7 +201,7 @@ export default function SuperAdminDashboard({ user, onLogout }: SuperAdminDashbo
   }), { totalBranches: 0, activeBranches: 0, totalSalespeople: 0, totalSales: 0, normalSales: 0, conditionalSales: 0 });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <Header user={user} onLogout={onLogout} />
       
       <main className="container mx-auto p-4 space-y-6">

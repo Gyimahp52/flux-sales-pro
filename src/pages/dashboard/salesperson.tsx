@@ -2,18 +2,22 @@ import { useState, useEffect } from "react";
 import { Header } from "@/components/layout/header";
 import { StatsCard } from "@/components/ui/stats-card";
 import { SalesCaptureForm } from "@/components/sales/sales-capture-form";
+import { DateRangePicker } from "@/components/export/date-range-picker";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { 
   TrendingUp, 
   Package, 
   Clock, 
   Download,
   Filter,
-  Eye
+  Eye,
+  Calendar
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface Sale {
   id: string;
@@ -36,6 +40,8 @@ export default function SalespersonDashboard({ user, onLogout }: SalespersonDash
   const { toast } = useToast();
   const [sales, setSales] = useState<Sale[]>([]);
   const [filter, setFilter] = useState<"All" | "Normal" | "Conditional">("All");
+  const [isExportOpen, setIsExportOpen] = useState(false);
+  const [exportRange, setExportRange] = useState<{ from: Date; to: Date } | null>(null);
 
   // Initialize with empty sales data
   useEffect(() => {
@@ -52,9 +58,51 @@ export default function SalespersonDashboard({ user, onLogout }: SalespersonDash
   };
 
   const handleExport = () => {
+    if (!exportRange) {
+      toast({
+        title: "Select Date Range",
+        description: "Please select a date range for export",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const filteredData = sales.filter(sale => {
+      const saleDate = new Date(sale.timestamp);
+      return saleDate >= exportRange.from && saleDate <= exportRange.to;
+    });
+
+    // Group by sale type
+    const normalSales = filteredData.filter(s => s.type === "Normal");
+    const conditionalSales = filteredData.filter(s => s.type === "Conditional");
+
+    // Create CSV content
+    const csvContent = [
+      "Sale Type,Item Name,Quantity,Date",
+      ...normalSales.map(sale => `Normal,"${sale.itemName}",${sale.quantity},"${sale.timestamp.toLocaleDateString()}"`),
+      ...conditionalSales.map(sale => `Conditional,"${sale.itemName}",${sale.quantity},"${sale.timestamp.toLocaleDateString()}"`),
+      "",
+      "Summary",
+      `Total Sales,${filteredData.length}`,
+      `Normal Sales,${normalSales.length}`,
+      `Conditional Sales,${conditionalSales.length}`
+    ].join("\n");
+
+    // Download CSV
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `sales-export-${exportRange.from.toISOString().split('T')[0]}-to-${exportRange.to.toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+
+    setIsExportOpen(false);
     toast({
-      title: "Exporting Sales",
-      description: "PDF export will be ready shortly...",
+      title: "Export Complete",
+      description: "Sales data has been exported successfully",
       variant: "default"
     });
   };
@@ -86,43 +134,48 @@ export default function SalespersonDashboard({ user, onLogout }: SalespersonDash
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <Header user={user} onLogout={onLogout} />
       
       <main className="container mx-auto p-4 space-y-6">
         {/* Welcome Section */}
-        <div className="text-center py-6">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Welcome back, {user?.name}!
-          </h1>
-          <p className="text-muted-foreground">
-            Ready to capture some sales today?
-          </p>
+        <div className="text-center py-8 relative">
+          <div className="absolute inset-0 bg-gradient-hero rounded-2xl blur-3xl opacity-30"></div>
+          <div className="relative">
+            <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-3">
+              Welcome back, {user?.name}!
+            </h1>
+            <p className="text-muted-foreground text-lg">
+              Ready to capture some sales today?
+            </p>
+          </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatsCard
             title="Total Sales"
             value={stats.totalSales}
             icon={Package}
+            className="bg-gradient-glass border-0 shadow-glass hover:shadow-primary/20 transition-smooth"
           />
           <StatsCard
             title="Normal Sales"
             value={stats.normalSales}
             icon={TrendingUp}
-            className="border-l-4 border-l-success"
+            className="bg-gradient-success/10 border-l-4 border-l-success shadow-success/20 hover:shadow-success/30 transition-smooth"
           />
           <StatsCard
             title="Conditional Sales"
             value={stats.conditionalSales}
             icon={Clock}
-            className="border-l-4 border-l-warning"
+            className="bg-warning-light/20 border-l-4 border-l-warning shadow-glass hover:shadow-lg transition-smooth"
           />
           <StatsCard
             title="Today's Sales"
             value={stats.todaysSales}
             icon={TrendingUp}
+            className="bg-gradient-primary/10 border-l-4 border-l-primary shadow-primary/20 hover:shadow-primary/30 transition-smooth"
           />
         </div>
 
@@ -148,17 +201,44 @@ export default function SalespersonDashboard({ user, onLogout }: SalespersonDash
                         key={filterType}
                         variant={filter === filterType ? "default" : "ghost"}
                         size="sm"
-                        className="rounded-none"
+                        className={cn(
+                          "rounded-none transition-smooth",
+                          filter === filterType && "bg-gradient-primary shadow-primary/20"
+                        )}
                         onClick={() => setFilter(filterType as typeof filter)}
                       >
                         {filterType}
                       </Button>
                     ))}
                   </div>
-                  <Button variant="outline" size="sm" onClick={handleExport}>
-                    <Download className="mr-2 h-4 w-4" />
-                    Export
-                  </Button>
+                  <Dialog open={isExportOpen} onOpenChange={setIsExportOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="shadow-md hover:shadow-primary/20 transition-smooth">
+                        <Download className="mr-2 h-4 w-4" />
+                        Export
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md bg-gradient-glass backdrop-blur-xl border-0 shadow-xl">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center space-x-2">
+                          <Calendar className="h-5 w-5 text-primary" />
+                          <span>Export Sales Data</span>
+                        </DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <DateRangePicker onRangeSelect={setExportRange} />
+                        <div className="flex justify-end space-x-2">
+                          <Button variant="outline" onClick={() => setIsExportOpen(false)}>
+                            Cancel
+                          </Button>
+                          <Button onClick={handleExport} className="bg-gradient-primary shadow-primary">
+                            <Download className="mr-2 h-4 w-4" />
+                            Export CSV
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
 
@@ -172,7 +252,7 @@ export default function SalespersonDashboard({ user, onLogout }: SalespersonDash
                   filteredSales.map((sale) => (
                     <div
                       key={sale.id}
-                      className="flex items-center justify-between p-4 bg-background rounded-lg border border-border hover:shadow-md transition-smooth"
+                      className="flex items-center justify-between p-4 bg-gradient-glass rounded-lg border border-border/50 hover:shadow-primary/10 transition-smooth"
                     >
                       <div className="flex items-center space-x-3">
                         <div className="flex-shrink-0">
@@ -191,7 +271,7 @@ export default function SalespersonDashboard({ user, onLogout }: SalespersonDash
                           variant={sale.type === "Normal" ? "default" : "secondary"}
                           className={
                             sale.type === "Normal" 
-                              ? "bg-success-light text-success border-success/20" 
+                              ? "bg-gradient-success text-success-foreground border-success/20 shadow-success/20" 
                               : "bg-warning-light text-warning border-warning/20"
                           }
                         >
